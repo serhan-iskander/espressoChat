@@ -52,8 +52,8 @@ pnpm client
 
  Video walkthrough:
  
- <video src="https://raw.githubusercontent.com/serhan-iskander/espressoChat/main/public/walkthrough.mp4" controls width="720">
-   <a href="https://raw.githubusercontent.com/serhan-iskander/espressoChat/main/public/walkthrough.mp4">View the video</a>
+ <video src="https://github.com/serhan-iskander/espressoChat/raw/refs/heads/main/public/walkthrough.mp4" controls width="720">
+   <a href="https://github.com/serhan-iskander/espressoChat/raw/refs/heads/main/public/walkthrough.mp4">View the video</a>
  </video>
 
 2. Run `pnpm dev` and `pnpm client` in two terminals.
