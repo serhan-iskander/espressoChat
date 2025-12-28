@@ -19,10 +19,7 @@ export default function App() {
 
     const connected = !!socket;
 
-    const clientId = useMemo(() => {
-        setUser({ id: '1', name: 'Test User', email: 'testuser@example.com' });
-        return (window as any).__GOOGLE_CLIENT_ID__ || '';
-    }, []);
+    const clientId = useMemo(() =>(window as any).__GOOGLE_CLIENT_ID__ || '', []);
     const gsiRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {

@@ -1,15 +1,12 @@
 import 'dotenv/config';
-import * as express from 'express';
-import * as http from 'http';
-import * as cors from 'cors';
+import express from 'express';
+import http from 'http';
+import cors from 'cors';
 import { Server } from 'socket.io';
 import { ChatRoomManager } from './ChatRoomManager';
 import { verifyGoogleIdToken, signJwt, verifyJwt, parseTokenFromCookie } from './auth';
 
-// Handle CJS/ESM interop for express and cors in various runtimes
-const expressFn: any = (express as any).default ?? (express as any);
-const corsFn: any = (cors as any).default ?? (cors as any);
-const app = expressFn();
+const app = express();
 const server = http.createServer(app);
 
 const PORT = process.env.PORT || 4000;
@@ -27,10 +24,10 @@ const io = new Server(server, {
   cors: { origin: devCorsOrigin, credentials: true }
 });
 
-app.use(corsFn({ origin: devCorsOrigin, credentials: true }));
-app.use(expressFn.json());
+app.use(cors({ origin: devCorsOrigin, credentials: true }));
+app.use(express.json());
 // Serve static frontend
-app.use(expressFn.static('public'));
+app.use(express.static('public'));
 // Expose client ID to browser
 app.get('/config.js', (_req, res) => {
   const gid = process.env.GOOGLE_CLIENT_ID || '';
@@ -70,7 +67,7 @@ app.get('/api/health', (_req, res) => res.json({ ok: true }));
 const store = new ChatRoomManager(200);
 
 // Auth middleware
-/**io.use((socket, next) => {
+io.use((socket, next) => {
   try {
     const token = parseTokenFromCookie(socket.handshake.headers.cookie || '');
     if (!token) return next(new Error('No auth token'));
@@ -81,7 +78,6 @@ const store = new ChatRoomManager(200);
     next(new Error('Auth invalid'));
   }
 });
-**/
 
 io.on('connection', (socket) => {
   // Send current rooms
