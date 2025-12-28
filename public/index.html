@@ -1,0 +1,178 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Espresso Chat</title>
+  <style>
+    body { font-family: system-ui, sans-serif; margin: 0; }
+    header { display:flex; align-items:center; gap:12px; padding:12px; border-bottom:1px solid #eee; }
+    main { display:flex; height: calc(100vh - 56px); }
+    aside { width: 280px; border-right:1px solid #eee; padding:12px; overflow:auto; }
+    section { flex:1; display:flex; flex-direction:column; }
+    #messages { flex:1; padding:12px; overflow:auto; }
+    #users { padding:8px; font-size:12px; color:#555; }
+    form { display:flex; gap:8px; padding:12px; border-top:1px solid #eee; }
+    input[type=text] { flex:1; padding:8px; }
+    button { padding:8px 12px; }
+    .room { display:flex; align-items:center; justify-content:space-between; margin-bottom:6px; }
+    .msg { margin:6px 0; }
+    .sender { font-weight:600; margin-right:6px; }
+    .timestamp { color:#999; font-size:12px; margin-left:6px; }
+  </style>
+  <script src="/config.js"></script>
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
+  <script src="https://cdn.socket.io/4.7.5/socket.io.min.js" integrity="sha384-6Gg3A1b2F5k4CwF1hM3v3a6bYxw2VxqH0m0b7bF5WvT8H7KzYJmM8Qv4YzC9qAqW" crossorigin="anonymous"></script>
+</head>
+<body>
+  <header>
+    <h3>Espresso Chat</h3>
+    <div id="auth">
+      <div id="g_id_onload"
+           data-client_id=""
+           data-context="signin"
+           data-auto_prompt="false"
+           data-callback="onGoogleCredential">
+      </div>
+      <div class="g_id_signin" data-type="standard" data-shape="rectangular" data-theme="outline" data-text="signin_with" data-size="large" data-logo_alignment="left"></div>
+      <span id="userInfo"></span>
+      <button id="logoutBtn" style="display:none">Logout</button>
+    </div>
+  </header>
+  <main>
+    <aside>
+      <h4>Rooms</h4>
+      <div>
+        <input id="newRoomName" type="text" placeholder="New room name" />
+        <button id="createRoomBtn">Create</button>
+      </div>
+      <div id="rooms"></div>
+    </aside>
+    <section>
+      <div id="users"></div>
+      <div id="messages"></div>
+      <form id="sendForm">
+        <input id="messageInput" type="text" placeholder="Type a message" />
+        <button type="submit">Send</button>
+      </form>
+    </section>
+  </main>
+  <script>
+    let socket = null;
+    let currentRoom = null;
+    let user = null;
+
+    function formatTime(ts){
+      const d = new Date(ts);
+      return d.toLocaleTimeString();
+    }
+    function renderRooms(list){
+      const el = document.getElementById('rooms');
+      el.innerHTML = '';
+      list.forEach(r => {
+        const div = document.createElement('div');
+        div.className = 'room';
+        div.innerHTML = `<span>${r.name} · ${r.online} online · ${r.messages} msgs</span>`;
+        const btn = document.createElement('button');
+        btn.textContent = currentRoom === r.name ? 'Leave' : 'Join';
+        btn.onclick = () => {
+          if (!socket) return alert('Not connected');
+          if (currentRoom === r.name) {
+            socket.emit('room:leave', r.name, () => { currentRoom = null; document.getElementById('messages').innerHTML=''; document.getElementById('users').innerHTML=''; });
+          } else {
+            socket.emit('room:join', r.name, () => { currentRoom = r.name; });
+          }
+        };
+        div.appendChild(btn);
+        el.appendChild(div);
+      });
+    }
+    function renderUsers(users){
+      document.getElementById('users').textContent = `Online: ${users.join(', ')}`;
+    }
+    function renderHistory(messages){
+      const el = document.getElementById('messages');
+      el.innerHTML = '';
+      messages.forEach(m => {
+        const div = document.createElement('div');
+        div.className = 'msg';
+        div.innerHTML = `<span class="sender">${m.sender}</span><span>${m.content}</span><span class="timestamp">${formatTime(m.timestamp)}</span>`;
+        el.appendChild(div);
+      });
+    }
+    function appendMessage(msg){
+      const el = document.getElementById('messages');
+      const div = document.createElement('div');
+      div.className = 'msg';
+      const sender = msg.user?.name || msg.user?.email || msg.user?.id || 'unknown';
+      div.innerHTML = `<span class="sender">${sender}</span><span>${msg.text}</span><span class="timestamp">${formatTime(msg.at)}</span>`;
+      el.appendChild(div);
+      el.scrollTop = el.scrollHeight;
+    }
+
+    document.getElementById('createRoomBtn').onclick = () => {
+      const name = document.getElementById('newRoomName').value.trim();
+      if (!name) return;
+      socket.emit('room:create', name);
+      document.getElementById('newRoomName').value = '';
+    };
+    document.getElementById('sendForm').onsubmit = (e) => {
+      e.preventDefault();
+      const text = document.getElementById('messageInput').value.trim();
+      if (!text || !currentRoom) return;
+      socket.emit('message:send', { room: currentRoom, text }, () => {
+        document.getElementById('messageInput').value = '';
+      });
+    };
+
+    function connectSocket(){
+      socket = io({ withCredentials: true });
+      socket.on('connect', () => console.log('Socket connected', socket.id));
+      socket.on('rooms:update', renderRooms);
+      socket.on('room:users', renderUsers);
+      socket.on('room:history', (payload) => { if (payload.room === currentRoom) renderHistory(payload.messages); });
+      socket.on('message:new', appendMessage);
+    }
+
+    function onGoogleCredential(resp){
+      const idToken = resp.credential;
+      fetch('/api/auth/google', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ idToken })
+      }).then(r => r.json()).then(data => {
+        if (data.error) { alert('Auth failed'); return; }
+        user = data.user;
+        document.getElementById('userInfo').textContent = `${user.name || user.email}`;
+        document.getElementById('logoutBtn').style.display = 'inline-block';
+        if (!socket) connectSocket();
+      }).catch(console.error);
+    }
+
+    document.getElementById('logoutBtn').onclick = () => {
+      fetch('/api/auth/logout', { method: 'POST' }).then(() => {
+        document.getElementById('logoutBtn').style.display = 'none';
+        document.getElementById('userInfo').textContent = '';
+        socket?.disconnect();
+        socket = null;
+      });
+    };
+
+    window.onGoogleCredential = onGoogleCredential;
+    // Initialize Google Sign-In once config arrives
+    window.addEventListener('load', () => {
+      const cid = window.__GOOGLE_CLIENT_ID__ || '';
+      if (!cid) {
+        console.warn('Missing GOOGLE_CLIENT_ID. Google Sign-In will not work.');
+      } else {
+        const el = document.getElementById('g_id_onload');
+        el?.setAttribute('data-client_id', cid);
+        if (window.google && window.google.accounts && window.google.accounts.id) {
+          window.google.accounts.id.initialize({ client_id: cid, callback: onGoogleCredential, auto_select: false });
+          window.google.accounts.id.renderButton(document.querySelector('.g_id_signin'), { theme: 'outline', size: 'large' });
+        }
+      }
+    });
+  </script>
+</body>
+</html>

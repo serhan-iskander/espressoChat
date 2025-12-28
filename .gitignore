@@ -1,0 +1,17 @@
+# Node/TypeScript
+node_modules/
+.pnpm-store/
+.DS_Store
+
+# Env files
+.env
+.env.*
+
+# Build outputs
+/dist/
+dist/
+build/
+coverage/
+
+# Vite/Cache
+.vite/
