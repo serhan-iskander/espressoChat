@@ -50,7 +50,11 @@ pnpm client
 - Backend serves auth endpoints and Socket.IO on `http://localhost:4000`.
 - Frontend runs at `http://localhost:5173` and proxies `/api` and `/config.js` to the backend.
 
- Video walkthrough: see [public/Screen Recording 2025-12-28 at 10.26.07 AM]<<video src="https://raw.githubusercontent.com/serhan-iskander/espressoChat/main/public/walkthrough.mp4" controls width="720"></video>
+ Video walkthrough:
+ 
+ <video src="https://raw.githubusercontent.com/serhan-iskander/espressoChat/main/public/walkthrough.mp4" controls width="720">
+   <a href="https://raw.githubusercontent.com/serhan-iskander/espressoChat/main/public/walkthrough.mp4">View the video</a>
+ </video>
 
 2. Run `pnpm dev` and `pnpm client` in two terminals.
 3. Navigate to `http://localhost:5173`.
