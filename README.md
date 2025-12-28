@@ -56,6 +56,9 @@ pnpm client
    <a href="https://github.com/serhan-iskander/espressoChat/raw/refs/heads/main/public/walkthrough.mp4">View the video</a>
  </video>
 
+see [public/walkthrough.mp4](public/walkthrough.mp4).
+
+
 2. Run `pnpm dev` and `pnpm client` in two terminals.
 3. Navigate to `http://localhost:5173`.
 4. Click "Sign in with Google" → on success, a `token` httpOnly cookie is set.
