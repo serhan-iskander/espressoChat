@@ -50,7 +50,7 @@ pnpm client
 - Backend serves auth endpoints and Socket.IO on `http://localhost:4000`.
 - Frontend runs at `http://localhost:5173` and proxies `/api` and `/config.js` to the backend.
 
- Video walkthrough: see [public/Screen Recording 2025-12-28 at 10.26.07 AM](public/Screen%20Recording%202025-12-28%20at%2010.26.07%E2%80%AFAM).
+ Video walkthrough: see [public/Screen Recording 2025-12-28 at 10.26.07 AM](public/Screen%20Recording%202025-12-28%20at%2010.26.07%E2%80%AFAM.mov).
 2. Run `pnpm dev` and `pnpm client` in two terminals.
 3. Navigate to `http://localhost:5173`.
 4. Click "Sign in with Google" → on success, a `token` httpOnly cookie is set.
