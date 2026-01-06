@@ -3,8 +3,8 @@ import express from 'express';
 import http from 'http';
 import cors from 'cors';
 import { Server } from 'socket.io';
-import { ChatRoomManager } from './ChatRoomManager';
-import { verifyGoogleIdToken, signJwt, verifyJwt, parseTokenFromCookie } from './auth';
+import { ChatRoomManager } from './ChatRoomManager.ts';
+import { verifyGoogleIdToken, signJwt, verifyJwt, parseTokenFromCookie } from './auth.ts';
 
 const app = express();
 const server = http.createServer(app);

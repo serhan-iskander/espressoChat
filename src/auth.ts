@@ -9,7 +9,7 @@ const {
 
 const googleClient = new OAuth2Client(GOOGLE_CLIENT_ID);
 
-export async function verifyGoogleIdToken(idToken) {
+export async function verifyGoogleIdToken(idToken: string) {
   const ticket = await googleClient.verifyIdToken({
     idToken,
     audience: GOOGLE_CLIENT_ID,
@@ -24,7 +24,7 @@ export async function verifyGoogleIdToken(idToken) {
   };
 }
 
-export function signJwt(user) {
+export function signJwt(user: { sub: string; email?: string; name?: string; picture?: string }) {
   return jwt.sign(
     { sub: user.sub, email: user.email, name: user.name, picture: user.picture },
     JWT_SECRET,
@@ -32,11 +32,11 @@ export function signJwt(user) {
   );
 }
 
-export function verifyJwt(token) {
+export function verifyJwt(token: string) {
   return jwt.verify(token, JWT_SECRET);
 }
 
-export function parseTokenFromCookie(headerCookie) {
+export function parseTokenFromCookie(headerCookie: string): string | null {
   if (!headerCookie) return null;
   const cookies = cookie.parse(headerCookie);
   return cookies['token'] || null;

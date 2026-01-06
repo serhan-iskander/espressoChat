@@ -1,5 +1,9 @@
 
+import { room } from './Room.js';
 export class ChatRoomManager {
+  rooms: room[];
+  maxMessagesPerRoom: number;
+  sessionIndex: Map<string, Map<string, string>>; // roomName -> (socketId -> userId)
   constructor(maxMessagesPerRoom = 200) {
     this.rooms = [];
     this.maxMessagesPerRoom = maxMessagesPerRoom;
